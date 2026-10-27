@@ -39,7 +39,7 @@ const RefreshRequestSchema = z.object({
  * use); presenting the previous one again is treated as theft and revokes the
  * family. Two session kinds are supported:
  * - a GitHub login refresh (`REFRESH_TOKEN`) gets `api` plus the user's current
- *   permissions and a 1-day JWT, and may alert on a new device;
+ *   permissions and a 10-minute JWT, and may alert on a new device;
  * - a delegated token (`DELEGATED_TOKEN`) gets its stored permissions
  *   re-intersected with the user's current grants and a 1-day JWT; it alerts
  *   on a new device fingerprint like any other refresh.

@@ -44,7 +44,7 @@ export const SIGN_MAX_AGE_MS = 3.2 * DAY_MS; // a signing key must be issued wit
 export const MIN_SIGNING_KEY_AGE_MS = 2 * 60_000;
 export const DELETE_AFTER_MS = 5 * DAY_MS; // delete keys older than 5 days
 /** GitHub-login JWTs are short-lived so revocation/scope changes take effect quickly. */
-export const GITHUB_TOKEN_TTL_SECONDS = 60;
+export const GITHUB_TOKEN_TTL_SECONDS = 10 * 60;
 /** Delegated JWTs keep their 1-day lifetime for integrations. */
 export const DELEGATED_TOKEN_TTL_SECONDS = 24 * 60 * 60;
 

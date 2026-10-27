@@ -441,13 +441,13 @@ describe("POST /auth/refresh", () => {
         expect(res.status).toBe(200);
         const body = await res.json();
         expect(body.data.scope).toEqual(["api"]);
-        expect(body.data.expiresIn).toBe(60);
+        expect(body.data.expiresIn).toBe(600);
 
         const key = await importJWK(JSON.parse(keys[0].publicKey), "RS256");
         const { payload } = await jwtVerify(body.data.token, key);
         expect(payload.sub).toBe("alice");
         expect(payload.scope).toEqual(["api"]);
-        expect((payload.exp as number) - (payload.iat as number)).toBe(60);
+        expect((payload.exp as number) - (payload.iat as number)).toBe(600);
         expect(payload.sid).toBe(seeded.tokenRow.id);
 
         // Cloudflare's CF-Connecting-IP wins over the (spoofable) XFF entry:
