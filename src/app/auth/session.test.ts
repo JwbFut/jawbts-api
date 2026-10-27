@@ -113,6 +113,15 @@ const { fakeDb, sessions, keys, alice, bob, activityHashes } = vi.hoisted(() => 
         findFirst: async ({ where }: { where: Record<string, unknown> }) => {
             const ors = (where.OR as Array<Record<string, unknown>>) ?? [];
             const userId = where.userId as number | undefined;
+            if (where.id !== undefined) {
+                return (
+                    sessions.find(
+                        (row) =>
+                            row.id === where.id &&
+                            (userId === undefined || row.userId === userId),
+                    ) ?? null
+                );
+            }
             return (
                 sessions.find((row) => {
                     if (userId !== undefined && row.userId !== userId) return false;
@@ -684,41 +693,7 @@ describe("GET /auth/sessions", () => {
 });
 
 describe("POST /auth/revoke", () => {
-    it("revokes by refreshToken, removing the whole login pair", async () => {
-        const seeded = await seedSession(alice);
-        const token = await apiJwt("alice", ["api"]);
-        const res = await revoke(
-            post(
-                "http://localhost/auth/revoke",
-                { refreshToken: seeded.refreshToken },
-                { authorization: `Bearer ${token}` },
-            ),
-            {},
-        );
-        expect(res.status).toBe(200);
-        expect((await res.json()).data.revoked).toBe(true);
-        expect(sessions).toHaveLength(0);
-    });
-
-    it("revokes a delegated token without touching the login pair", async () => {
-        await seedSession(alice);
-        const delegated = await seedDelegated(alice);
-        const token = await apiJwt("alice", ["api"]);
-        const res = await revoke(
-            post(
-                "http://localhost/auth/revoke",
-                { refreshToken: delegated.refreshToken },
-                { authorization: `Bearer ${token}` },
-            ),
-            {},
-        );
-        expect(res.status).toBe(200);
-        expect(sessions.some((s) => s.id === delegated.delegated.id)).toBe(false);
-        // The GitHub login pair is still there.
-        expect(sessions).toHaveLength(2);
-    });
-
-    it("rejects a body that only names a sessionId (only refresh tokens can be revoked)", async () => {
+    it("revokes a refresh-token session by id, removing the whole login pair", async () => {
         const seeded = await seedSession(alice);
         const token = await apiJwt("alice", ["api"]);
         const res = await revoke(
@@ -729,13 +704,31 @@ describe("POST /auth/revoke", () => {
             ),
             {},
         );
-        expect(res.status).toBe(400);
-        expect((await res.json()).code).toBe(10001);
+        expect(res.status).toBe(200);
+        expect((await res.json()).data.revoked).toBe(true);
+        expect(sessions).toHaveLength(0);
+    });
+
+    it("revokes a delegated session by id without touching the login pair", async () => {
+        await seedSession(alice);
+        const delegated = await seedDelegated(alice);
+        const token = await apiJwt("alice", ["api"]);
+        const res = await revoke(
+            post(
+                "http://localhost/auth/revoke",
+                { sessionId: delegated.delegated.id },
+                { authorization: `Bearer ${token}` },
+            ),
+            {},
+        );
+        expect(res.status).toBe(200);
+        expect(sessions.some((s) => s.id === delegated.delegated.id)).toBe(false);
+        // The GitHub login pair is still there.
         expect(sessions).toHaveLength(2);
     });
 
-    it("cannot revoke another user's refresh token", async () => {
-        const seeded = await seedSession(bob);
+    it("rejects the old refreshToken body shape", async () => {
+        const seeded = await seedSession(alice);
         const token = await apiJwt("alice", ["api"]);
         const res = await revoke(
             post(
@@ -745,12 +738,28 @@ describe("POST /auth/revoke", () => {
             ),
             {},
         );
+        expect(res.status).toBe(400);
+        expect((await res.json()).code).toBe(10001);
+        expect(sessions).toHaveLength(2);
+    });
+
+    it("cannot revoke another user's session by id", async () => {
+        const seeded = await seedSession(bob);
+        const token = await apiJwt("alice", ["api"]);
+        const res = await revoke(
+            post(
+                "http://localhost/auth/revoke",
+                { sessionId: seeded.login.id },
+                { authorization: `Bearer ${token}` },
+            ),
+            {},
+        );
         expect(res.status).toBe(404);
         expect((await res.json()).code).toBe(10000);
         expect(sessions).toHaveLength(2);
     });
 
-    it("requires refreshToken in the body", async () => {
+    it("requires sessionId in the body", async () => {
         const token = await apiJwt("alice", ["api"]);
         const res = await revoke(
             post("http://localhost/auth/revoke", {}, { authorization: `Bearer ${token}` }),
