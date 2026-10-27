@@ -1,0 +1,92 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                    Int            @id @default(autoincrement())
+  /// Active address, or a hidden placeholder while an email change is pending.
+  /// Case-insensitive uniqueness is enforced by the lower(email) index in
+  /// scripts/ensure-email-index.mjs (run by db:push/db:seed).
+  email                 String         @unique
+  name                  String         @unique
+  githubId              String         @unique
+  permissions           String[]       @default([])
+  /// Pending email-change state. Hidden from every API response.
+  emailChangeTokenHash  String?
+  emailChangeExpiresAt  DateTime?
+  emailChangeLastSentAt DateTime?
+  sessions              Session[]
+  activityHashes        ActivityHash[]
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([emailChangeTokenHash])
+  @@map("users")
+}
+
+enum SessionType {
+  GITHUB_LOGIN
+  REFRESH_TOKEN
+  DELEGATED_TOKEN
+}
+
+model Session {
+  id                       String      @id @default(cuid())
+  userId                   Int
+  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type                     SessionType
+  state                    String?     @unique
+  refreshTokenHash         String?     @unique
+  previousRefreshTokenHash String?     @unique
+  /// Scope granted to a DELEGATED_TOKEN row (empty for login rows).
+  permissions              String[]    @default([])
+  /// Optional client-supplied label for DELEGATED_TOKEN rows (management).
+  label                    String?
+  parentId                 String?
+  parent                   Session?    @relation("SessionTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children                 Session[]   @relation("SessionTree")
+  expiresAt                DateTime
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+
+  @@index([userId, type])
+  @@map("sessions")
+}
+
+/// Single-row lease that ensures only one instance runs a rotation check.
+model JwksLock {
+  id          Int       @id
+  lockedUntil DateTime?
+
+  @@map("jwks_lock")
+}
+
+model Jwk {
+  id         String   @id @default(cuid())
+  kid        String   @unique
+  publicKey  String
+  privateKey String
+  createdAt  DateTime @default(now())
+
+  @@map("jwks")
+}
+
+/// SHA-512 fingerprint of the IP + user agent observed on a login/refresh.
+/// Only the hash is stored; the raw values are never persisted.
+model ActivityHash {
+  id        String   @id @default(cuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hash      String
+  createdAt DateTime @default(now())
+
+  @@index([userId, hash, createdAt])
+  @@index([createdAt])
+  @@map("activity_hashes")
+}

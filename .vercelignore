@@ -1,0 +1,7 @@
+# Local Prisma Dev state; production uses DATABASE_URL / Neon.
+.prisma-dev-data/
+
+# Never upload local secrets; configure env vars in Vercel instead.
+.env
+.env.*
+!.env.example

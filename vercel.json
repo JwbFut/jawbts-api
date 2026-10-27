@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/.well-known/jwks.json",
+      "schedule": "0 10 * * *"
+    }
+  ]
+}
