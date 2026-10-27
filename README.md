@@ -136,7 +136,7 @@ Configure these in GitHub:
 | Name | Kind | Value |
 | --- | --- | --- |
 | `DATABASE_URL` | Secret | Direct/unpooled production PostgreSQL URL for schema sync |
-| `DATABASE_SCHEMA` | Variable | e.g. `jawbts-api` |
+| `DATABASE_SCHEMA` | Variable or Secret | e.g. `jawbts-api` |
 | `VERCEL_TOKEN` | Secret | Vercel account token |
 | `VERCEL_ORG_ID` | Secret | From the Vercel project's `.vercel/project.json` |
 | `VERCEL_PROJECT_ID` | Secret | From the Vercel project's `.vercel/project.json` |

@@ -17,7 +17,7 @@ env:
   # Used by Prisma generate and the production schema sync. GitHub needs a
   # direct/unpooled database URL here; Vercel uses its own DATABASE_URL.
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  DATABASE_SCHEMA: ${{ vars.DATABASE_SCHEMA }}
+  DATABASE_SCHEMA: ${{ vars.DATABASE_SCHEMA || secrets.DATABASE_SCHEMA }}
 
 jobs:
   checks-db-deploy:
