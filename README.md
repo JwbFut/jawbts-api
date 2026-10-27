@@ -123,6 +123,24 @@ Replace the quoted schema if `DATABASE_SCHEMA` differs.
 
    Then complete one GitHub login and one refresh.
 
+### GitHub Actions CI/CD
+
+`.github/workflows/deploy.yml` runs on every push to `main`:
+
+1. lint, tests, production build;
+2. `npm run db:push` (schema + email index);
+3. `npx vercel deploy --prod`.
+
+Configure these in GitHub:
+
+| Name | Kind | Value |
+| --- | --- | --- |
+| `DATABASE_URL` | Secret | Direct/unpooled production PostgreSQL URL for schema sync |
+| `DATABASE_SCHEMA` | Variable | e.g. `jawbts-api` |
+| `VERCEL_TOKEN` | Secret | Vercel account token |
+| `VERCEL_ORG_ID` | Secret | From the Vercel project's `.vercel/project.json` |
+| `VERCEL_PROJECT_ID` | Secret | From the Vercel project's `.vercel/project.json` |
+
 ### Local development
 
 Use a development-only `.env` and a local PostgreSQL/Neon connection. The

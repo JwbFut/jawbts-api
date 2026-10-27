@@ -1,0 +1,56 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never let two pushes race on the shared database or production deployment.
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  # Used by Prisma generate and the production schema sync. GitHub needs a
+  # direct/unpooled database URL here; Vercel uses its own DATABASE_URL.
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  DATABASE_SCHEMA: ${{ vars.DATABASE_SCHEMA }}
+
+jobs:
+  checks-db-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Sync database schema
+        run: npm run db:push
+
+      - name: Deploy to Vercel
+        run: npx --yes vercel@65.1.0 deploy --prod --yes --token "$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
