@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import nextConfig from "../../next.config";
+import { BUILD_HASH, BUILD_HASH_HEADER } from "./build-hash";
 import { CORS_HEADERS, corsPreflight } from "./cors";
 
 describe("CORS", () => {
@@ -7,9 +8,10 @@ describe("CORS", () => {
         const rules = await nextConfig.headers?.();
         expect(rules).toHaveLength(1);
         expect(rules?.[0].source).toBe("/:path*");
-        expect(rules?.[0].headers).toEqual(
-            Object.entries(CORS_HEADERS).map(([key, value]) => ({ key, value })),
-        );
+        expect(rules?.[0].headers).toEqual([
+            ...Object.entries(CORS_HEADERS).map(([key, value]) => ({ key, value })),
+            { key: BUILD_HASH_HEADER, value: BUILD_HASH },
+        ]);
         expect(CORS_HEADERS["Access-Control-Allow-Origin"]).toBe("*");
         expect(CORS_HEADERS["Access-Control-Allow-Credentials"]).toBeUndefined();
     });

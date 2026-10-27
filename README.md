@@ -123,6 +123,12 @@ Replace the quoted schema if `DATABASE_SCHEMA` differs.
 
    Then complete one GitHub login and one refresh.
 
+### Build hash
+
+Every response includes `X-Build-Hash`. It is populated from `BUILD_HASH`
+(CI/Vercel build env), then `VERCEL_GIT_COMMIT_SHA`, then `GITHUB_SHA`, and
+falls back to `dev` locally. The header is exposed through CORS.
+
 ### GitHub Actions CI/CD
 
 `.github/workflows/deploy.yml` runs on every push to `main`:
