@@ -1,5 +1,7 @@
 # jawbts-api
 
+Rework of [jawbts-api-next](https://github.com/JwbFut/jawbts-api-next).
+
 Security-focused JSON API for GitHub login, short-lived RS256 JWTs,
 single-use refresh tokens, delegated access tokens, confirmed email changes,
 and email alerts for new login/refresh devices.
