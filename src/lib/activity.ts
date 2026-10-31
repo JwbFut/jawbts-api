@@ -102,8 +102,8 @@ export function buildActivityAlert(alert: ActivityAlert): {
         row("IP address", alert.ip),
         row("User agent", alert.userAgent),
         "</table>",
-        "<p style=\"color:#666\">If this was you, no action is needed. If this wasn't you, " +
-        "it's suggested to delete this email.</p>",
+        "<p style=\"color:#666\">If this was you, no action is needed." +
+        "It's suggested to delete this email.</p>",
         "</div>",
     ].join("");
     return { subject: copy.subject, text, html };
