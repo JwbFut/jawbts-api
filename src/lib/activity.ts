@@ -89,7 +89,7 @@ export function buildActivityAlert(alert: ActivityAlert): {
         `User agent: ${alert.userAgent}`,
         "",
         "If this was you, no action is needed.",
-        "If this wasn't you, revoke the session with POST /auth/revoke.",
+        "It's suggested to delete this email.",
     ].join("\n");
     const row = (label: string, value: string) =>
         `<tr><td style="padding:4px 12px 4px 0;color:#666">${escapeHtml(label)}</td>` +
@@ -103,7 +103,7 @@ export function buildActivityAlert(alert: ActivityAlert): {
         row("User agent", alert.userAgent),
         "</table>",
         "<p style=\"color:#666\">If this was you, no action is needed. If this wasn't you, " +
-            "revoke the session with <code>POST /auth/revoke</code>.</p>",
+        "it's suggested to delete this email.</p>",
         "</div>",
     ].join("");
     return { subject: copy.subject, text, html };
